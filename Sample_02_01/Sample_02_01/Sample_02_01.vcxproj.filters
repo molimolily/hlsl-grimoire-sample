@@ -33,6 +33,9 @@
     <Filter Include="MiniEngine\font">
       <UniqueIdentifier>{ccdb39f2-e486-43dd-9d91-51edb47d4f35}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\NewFilter1">
+      <UniqueIdentifier>{50f06d56-c6d2-4237-9bd4-b5c74d02d58a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
