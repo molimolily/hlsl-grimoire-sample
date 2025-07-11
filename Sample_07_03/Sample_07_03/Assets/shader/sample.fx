@@ -156,7 +156,22 @@ float CookTorranceSpecular(float3 L, float3 V, float3 N, float metallic)
 float CalcDiffuseFromFresnel(float3 N, float3 L, float3 V)
 {
     // step-1 ディズニーベースのフレネル反射による拡散反射を真面目に実装する。
+    float3 H = normalize(L + V); // ハーフベクトルを求める
+    float roughness = 0.5f; // 粗さを0.5に設定
+    float energyBias = lerp(0.0f, 0.5f, roughness); // エネルギーバイアスを設定
+    float energyFactor = lerp(1.0f, 1.0/ 1.51, roughness); // エネルギーファクターを設定
     
+    float dotLH = saturate(dot(L, H)); // 光源に向かうベクトルとハーフベクトルの内積
+    
+    float Fd90 = energyBias + 2.0 * dotLH * dotLH * roughness;
+    
+    float dotNL = saturate(dot(N, L)); // 法線と光源に向かうベクトルの内積
+    float FL = (1 + (Fd90 - 1) * pow(1 - dotNL, 5.0f));
+    
+    float dotNV = saturate(dot(N, V)); // 法線と視線に向かうベクトルの内積
+    float FV = (1 + (Fd90 - 1) * pow(1 - dotNV, 5.0f));
+    
+    return FL * FV * energyFactor; // フレネル反射を考慮した拡散反射率を計算
 }
 
 /// <summary>

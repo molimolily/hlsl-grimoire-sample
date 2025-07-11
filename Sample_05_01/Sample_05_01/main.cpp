@@ -12,7 +12,11 @@ struct Light
     Vector3 dirColor;       // ライトのカラー
     float pad1;
 
-    // step-1 ライト構造体にポイントライト用のメンバ変数を追加する
+    // step-1 ライト構造体にポイントライト用のメンバ変数を追加
+    Vector3 ptPosition;     // 位置
+    float pad2;             // パディング
+    Vector3 ptColor;        // カラー
+    float ptRange;          // 影響範囲
 
     Vector3 eyePos;         // 視点の位置
     float pad3;
@@ -57,21 +61,28 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     // 視点の位置を設定する
     light.eyePos = g_camera3D->GetPosition();
 
-    // 環境光
+    // アンビエントライト
     light.ambientLight.x = 0.3f;
     light.ambientLight.y = 0.3f;
     light.ambientLight.z = 0.3f;
 
-    // step-2 ポイントライトの初期座標を設定する
+    // step-3 ポイントライトの座標を設定する
+    light.ptPosition.x = 0.0f;
+    light.ptPosition.y = 50.0f;
+    light.ptPosition.z = 50.0f;
 
-    // step-3 ポイントライトの初期カラーを設定する
+    // step-4 ポイントライトのカラーを設定する
+    light.ptColor.x = 15.0f;
+    light.ptColor.y = 0.0f;
+    light.ptColor.z = 0.0f;
 
-    // step-4 ポイントライトの影響範囲を設定する
+    // step-5 ポイントライトの影響範囲を設定する
+    light.ptRange = 100.0f;
 
     // モデルを初期化する
     // モデルを初期化するための情報を構築する
     Model lightModel, bgModel, teapotModel;
-    InitModel(bgModel, teapotModel, lightModel , light);
+    InitModel(bgModel, teapotModel, lightModel, light);
 
     //////////////////////////////////////
     // 初期化を行うコードを書くのはここまで！！！
@@ -88,7 +99,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         //////////////////////////////////////
 
         // step-5 コントローラーでポイントライトを動かす
-        
+        light.ptPosition.x -= g_pad[0]->GetLStickXF();
+        if (g_pad[0]->IsPress(enButtonB))
+        {
+            light.ptPosition.y += g_pad[0]->GetLStickYF();
+        }
+        else
+        {
+            light.ptPosition.z -= g_pad[0]->GetLStickYF();
+        }
+
+        // 電球モデルのワールド行列を更新する
+        lightModel.UpdateWorldMatrix(light.ptPosition, g_quatIdentity, g_vec3One);
+
         // 背景モデルをドロー
         bgModel.Draw(renderContext);
 
@@ -122,8 +145,8 @@ void InitModel(Model& bgModel, Model& teapotModel, Model& lightModel, Light& lig
     // 使用するシェーダーファイルパスを設定する
     bgModelInitData.m_fxFilePath = "Assets/shader/sample.fx";
 
-    // ディレクションライトの情報をディスクリプタヒープに
-    // 定数バッファとして登録するためにモデルの初期化情報として渡す
+    // ディレクションライトの情報を定数バッファとしてディスクリプタヒープに登録するために
+    // モデルの初期化情報として渡す
     bgModelInitData.m_expandConstantBuffer = &light;
     bgModelInitData.m_expandConstantBufferSize = sizeof(light);
 
@@ -136,8 +159,8 @@ void InitModel(Model& bgModel, Model& teapotModel, Model& lightModel, Light& lig
     // 使用するシェーダーファイルパスを設定する
     teapotModelInitData.m_fxFilePath = "Assets/shader/sample.fx";
 
-    // ディレクションライトの情報をディスクリプタヒープに
-    // 定数バッファとして登録するためモデルの初期化情報として渡す
+    // ディレクションライトの情報を定数バッファとしてディスクリプタヒープに登録するために
+    // モデルの初期化情報として渡す
     teapotModelInitData.m_expandConstantBuffer = &light;
     teapotModelInitData.m_expandConstantBufferSize = sizeof(light);
 

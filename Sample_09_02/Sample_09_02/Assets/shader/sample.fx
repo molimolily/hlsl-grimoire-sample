@@ -9,6 +9,11 @@ cbuffer cb : register(b0)
 };
 
 // step3 ワイプパラメータにアクセスするための定数バッファを定義
+cbuffer WipeCB : register(b1)
+{
+    float2 wipeDirection; // ワイプ方向（0.0f: 水平, 1.0f: 垂直）
+    float wipeSize;      // ワイプサイズ（0.0f ~ 1.0f）
+};
 
 struct VSInput
 {
@@ -38,6 +43,8 @@ float4 PSMain(PSInput In) : SV_Target0
     float4 color = colorTexture.Sample(Sampler, In.uv);
 
     //step-4 ワイプ方向とワイプサイズを利用して、ピクセルをクリップする
+    float t = dot(wipeDirection, In.pos.xy);
+    clip(t - wipeSize);
 
     return color;
 }

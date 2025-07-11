@@ -42,6 +42,11 @@ cbuffer DirectionLightCb : register(b1)
     float ptRange;          // ポイントライトの影響範囲
 
     // step-5 スポットライトのデータにアクセスするための変数を追加する
+    float3 spPosition;     // スポットライトの位置
+    float3 spColor;        // スポットライトのカラー
+    float spRange;         // スポットライトの影響範囲
+    float3 spDirection;    // スポットライトの方向
+    float spAngle;         // スポットライトの角度
 
     float3 eyePos;          // 視点の位置
     float3 ambientLight;    // アンビエントライト
@@ -100,20 +105,47 @@ float4 PSMain(SPSIn psIn) : SV_Target0
     // ほとんどポイントライトと同じ
 
     // step-6 サーフェイスに入射するスポットライトの光の向きを計算する
+    float3 ligDir = psIn.worldPos - spPosition;
+    ligDir = normalize(ligDir); // 正規化して大きさ1のベクトルにする
 
     // step-7 減衰なしのLambert拡散反射光を計算する
+    float3 diffSpotLight = CalcLambertDiffuse(
+        ligDir,         // ライトの方向
+        spColor,        // ライトのカラー
+        psIn.normal     // サーフェイスの法線
+    );
 
     // step-8 減衰なしのPhong鏡面反射光を計算する
+    float3 specSpotLight = CalcPhongSpecular(
+        ligDir,         // ライトの方向
+        spColor,        // ライトのカラー
+        psIn.worldPos,  // サーフェイスのワールド座標
+        psIn.normal     // サーフェイスの法線
+    );
 
     // step-9 距離による影響率を計算する
-
+    float3 distance = length(psIn.worldPos - spPosition);
+    float affect = 1.0f - 1.0f / spRange * distance;
+    affect = max(0.0f, affect);
+    affect = pow(affect, 3.0f);
+    
     // step-10 影響率を乗算して反射光を弱める
+    diffSpotLight *= affect;
+    specSpotLight *= affect;
 
     // step-11 入射光と射出方向の角度を求める
-
+    float angle = dot(ligDir, spDirection);
+    angle = abs(acos(angle));
+    
     // step-12 角度による影響率を求める
+    affect = 1.0f - 1.0f / spAngle * angle;
+    affect = max(0.0f, affect);
+    affect = pow(affect, 0.5f);
+    
 
     // step-13 角度による影響率を反射光に乗算して、影響を弱める
+    diffSpotLight *= affect;
+    specSpotLight *= affect;
 
     // ディレクションライト+ポイントライト+環境光を求める
     float3 finalLig = directionLig
@@ -121,7 +153,7 @@ float4 PSMain(SPSIn psIn) : SV_Target0
                     + ambientLight;
 
     // step-14 スポットライトの反射光を最終的な反射光に足し算する
-
+    finalLig += diffSpotLight + specSpotLight;
     float4 finalColor = g_texture.Sample(g_sampler, psIn.uv);
 
     // テクスチャカラーに求めた光を乗算して最終出力カラーを求める
