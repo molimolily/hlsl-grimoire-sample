@@ -53,6 +53,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     // テクスチャはオフスクリーンレンダリングされた絵
     spriteInitData.m_textures[0] = &offscreenRenderTarget.GetRenderTargetTexture();
+    
     spriteInitData.m_width = 1280;
     spriteInitData.m_height = 720;
 

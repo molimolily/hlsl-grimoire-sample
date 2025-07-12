@@ -32,7 +32,7 @@ float4 PSMain(PSInput In) : SV_Target0
     float4 color = sceneTexture.Sample(Sampler, In.uv);
 
     // step-1 基準テクセル+近傍8テクセルの平均を計算する
-    // 2.5テクセル分ずらすためのUV値を求める
+    // 1.5テクセル分ずらすためのUV値を求める
     float offsetU = 1.5f / 1280.0f;
     float offsetV = 1.5f / 720.0f;
 
